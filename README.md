@@ -1,65 +1,77 @@
-# LabGuard — export et déploiement Vercel
+# LabGuard — assistant documentaire
 
-## Ce qui a réellement été récupéré
+Un chat en français, centré sur les procédures : discussions, sélection des documents, réponses avec références et consultation des passages cités. Interface claire et sombre, navigation au clavier et disposition mobile.
 
-Le dépôt source complet de la version publiée a été exporté depuis ChatGPT Sites au commit `23bd6eec2323bfcd2c2bb70bc5d299fea74c158f`.
-Le dépôt canonique contient directement les fichiers statiques de `dist/`. Il ne contient pas un projet React/Vite caché, ni un backend RAG. Aucun code n'a été reconstruit pour remplir les trous.
+## État livré
 
-Contenu principal :
+- Bibliothèque personnelle PDF texte, DOCX et TXT avec extraction locale et fichier original conservé dans IndexedDB.
+- Activation explicite après vérification du texte ; les brouillons, archives et documents futurs sont exclus de la recherche.
+- Une nouvelle version active archive les versions actives précédentes du même code, dans une transaction.
+- Discussions et citations conservées dans le navigateur. Les extraits historiques restent consultables si un document est archivé ou supprimé.
+- Recherche lexicale avec classement de type BM25, découpage par page et recouvrement des extraits. Les relances peuvent reprendre le sujet de la question précédente.
+- Mode **lecture documentaire** utilisable sans connexion : il reproduit les extraits retrouvés, sans génération IA. Les exemples intégrés sont fictifs et explicitement identifiés.
+- Route serveur `/api/chat` utilisant l’API Responses d’OpenAI et un format JSON strict. Chaque paragraphe doit être accompagné de références et de citations présentes dans les extraits. Toute référence invalide entraîne une réponse d’information insuffisante.
+- Authentification Supabase vérifiée côté serveur et liste explicite des adresses autorisées. Aucun appel OpenAI sans cette authentification et sans configuration complète.
 
-- `dist/index.html` : interface ;
-- `dist/style.css` : styles ;
-- `dist/app.js` : logique navigateur ;
-- `dist/vendor/` : copie locale de PDF.js et sa licence ;
-- `scripts/build.mjs` : restaure le worker PDF depuis sa copie gzip versionnée ;
-- `.openai/hosting.json` : ancienne configuration Sites, conservée comme trace ;
-- `vercel.json` : configuration indépendante pour Vercel.
+**Le code de la génération IA est implémenté ; son activation et sa validation avec les services réels nécessitent les variables serveur et un projet Supabase actif.** Aucun secret n’est inclus dans ce dépôt. Les tests du fournisseur et de l’authentification utilisent des réponses simulées.
 
-## Fonctionnement et dépendances
+## Démarrer et vérifier
 
-LabGuard est actuellement un prototype 100 % navigateur :
+Node.js 22, sans dépendances npm supplémentaires :
 
-- les PDF/DOCX/TXT sont lus localement ;
-- les documents ajoutés sont enregistrés dans IndexedDB, dans le navigateur de l'utilisateur ;
-- PDF.js est déjà inclus dans `dist/vendor/` ;
-- aucune base distante, API, variable d'environnement ou clé secrète n'est utilisée ;
-- le tchat ne fait encore aucune recherche RAG et ne contacte ni Supabase ni OpenAI.
-
-Les documents déjà ajoutés dans un navigateur ne se trouvent donc pas dans ChatGPT Sites et ne peuvent pas être exportés depuis le serveur. Ils restent dans le profil local de ce navigateur. Oui, le bouton ressemble à une vraie bibliothèque documentaire ; non, les petits lutins de Supabase ne travaillent pas encore derrière.
-
-## Tester localement
-
-Depuis ce dossier, restaurez d'abord le worker PDF puis lancez le serveur statique :
-
-```bash
+```sh
+npm test
 npm run build
 python3 -m http.server 8080 --directory dist
 ```
 
-Puis ouvrir `http://localhost:8080`.
+Le serveur Python sert l’interface et la lecture documentaire. Il ne lance pas les routes `api/`. Le build restaure le worker PDF.js à partir de son archive gzip versionnée.
 
-Aucune dépendance npm externe n'est nécessaire. La courte étape de build ne compile pas l'application : elle décompresse à l'identique le worker PDF.js, conservé en gzip pour permettre son transfert fiable vers GitHub.
+Pour exécuter les routes serveur localement, utiliser `vercel dev` avec la configuration du projet et les variables dans un fichier `.env.local` ignoré par Git. Le déploiement existant utilise `vercel.json`, le dossier `dist` et les fonctions du dossier `api`.
 
-## Déployer sur Vercel
+## Activer le pilote IA sur Vercel
 
-> **Protection d'accès :** le projet Sites actuel est limité à votre compte. Un déploiement Vercel statique est public par défaut. Activez la protection de déploiement Vercel (ou ajoutez une authentification applicative) avant de publier des procédures réelles ou des informations internes.
+Configurer **uniquement côté serveur** :
 
-### Avec Git
+| Variable | Rôle |
+| --- | --- |
+| `OPENAI_API_KEY` | Clé du projet OpenAI autorisé |
+| `OPENAI_MODEL` | Modèle, `gpt-4.1-mini` par défaut |
+| `SUPABASE_URL` | URL HTTPS du projet Supabase |
+| `SUPABASE_PUBLISHABLE_KEY` | Clé publiable du projet ; ancienne clé anon également reconnue via `SUPABASE_ANON_KEY` |
+| `LABGUARD_ALLOWED_EMAILS` | Liste d’adresses du pilote, séparées par des virgules |
 
-1. Créer un dépôt Git avec ce dossier.
-2. L'importer dans Vercel.
-3. Choisir **Other** comme framework si Vercel le demande.
-4. Laisser Vercel utiliser la commande `npm run build` définie dans `vercel.json`.
-5. Le dossier de sortie est fixé à `dist` par `vercel.json`.
-6. Déployer.
+Dans Supabase, réactiver le projet si nécessaire, créer ou inviter les comptes du pilote et autoriser l’URL exacte du site dans la configuration des redirections Auth. Le formulaire utilise un lien de connexion par e-mail avec `create_user: false` : il ne crée pas librement de comptes. Le serveur vérifie l’utilisateur, la confirmation de son adresse et son appartenance à la liste avant chaque question IA.
 
-### Avec la CLI
+Redéployer après modification des variables. `/api/config` annonce l’état et expose uniquement l’URL et la clé **publiable** nécessaires à la connexion. Il n’expose ni clé OpenAI, ni secret Supabase, ni liste d’adresses autorisées.
 
-```bash
-vercel
-vercel --prod
-```
+L’accès n’est pas prêt tant que le parcours connexion → question → réponse citée n’a pas été testé avec un compte autorisé et refusé avec un autre compte. Les tests automatisés couvrent ces décisions avec des réponses de service simulées.
 
-## Ce qui reste à créer pour le vrai LabGuard
+## Parcours des données
 
-Le backend documentaire décrit dans l'interface n'existe pas encore. Il faudra construire séparément : authentification et rôles, stockage des fichiers, ingestion/chunking, embeddings, recherche vectorielle, génération sourcée, historique, journal d'audit et administration documentaire. Cet export préserve fidèlement le prototype ; il ne maquille pas une façade en logiciel hospitalier opérationnel.
+1. L’import extrait le texte dans le navigateur. Documents et discussions restent dans ce navigateur.
+2. En lecture documentaire, toute la recherche reste locale ; aucune génération IA n’est appelée.
+3. En mode IA connecté, le navigateur transmet au serveur la question, jusqu’à huit messages précédents et les documents actifs sélectionnés. Le serveur valide les limites et retrouve au maximum cinq passages.
+4. Seuls ces passages, la question et l’historique limité sont transmis à OpenAI, avec `store: false`. Ce paramètre ne constitue pas une garantie d’absence de rétention par le fournisseur.
+5. Le serveur vérifie les identifiants et les citations textuelles. Les pages et versions proviennent des documents, jamais du modèle. La réponse et ses extraits sont enregistrés localement.
+
+Ne pas saisir de données réelles de patients. Les exemples et les vérifications de développement utilisent exclusivement des documents fictifs.
+
+## Limites du pilote
+
+- Bibliothèque personnelle : pas de synchronisation des documents ou discussions entre appareils, pas de bibliothèque hospitalière partagée ni d’index pgvector connecté.
+- Recherche lexicale, sans embeddings : les synonymes et formulations très éloignées peuvent nécessiter une reformulation. Une absence de résultat n’établit pas que le document ne contient pas la réponse.
+- Les PDF scannés ne sont pas reconnus automatiquement. Les tableaux et unités doivent être vérifiés après extraction. DOCX et TXT ne reçoivent pas de faux numéros de page.
+- La validation locale d’un document n’est pas un workflow institutionnel de validation avec rôles et audit. L’authentification protège l’accès au service IA ; chaque utilisateur fournit son propre corpus dans la requête.
+- La présence d’une citation textuelle est contrôlée ; elle ne garantit pas à elle seule que toutes les interprétations de l’IA sont justes. Le professionnel doit vérifier la réponse dans son contexte.
+- La limite de huit questions par minute est appliquée par utilisateur et instance serveur. Ce n’est ni une limite globale durable ni un plafond de dépense. Un pilote élargi nécessite un quota partagé et un budget fournisseur.
+- Les fonctions de non-conformités, l’administration multi-tenant et la certification/conformité clinique ne font pas partie de cette livraison.
+
+## Fichiers
+
+- `dist/` : interface, extraction, recherche locale, PDF.js et licence.
+- `api/` : points d’entrée Vercel.
+- `server/` : génération, contrôle des citations, authentification et validation.
+- `tests/` : recherche, versions/pages, refus de sources inventées, contrats fournisseur, configuration fermée par défaut et contrôle d’accès.
+- `.env.example` : noms des variables, sans valeurs secrètes.
+- `SOURCE-METADATA.md` et `.openai/hosting.json` : origine historique de l’export Sites, préservée. Le présent développement vise le dépôt GitHub et son hébergement Vercel existant.

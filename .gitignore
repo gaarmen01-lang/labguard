@@ -1,1 +1,7 @@
 migration/source-history.bundle
+.env
+.env.*
+!.env.example
+node_modules/
+.vercel/
+dist/vendor/pdf.worker.mjs
