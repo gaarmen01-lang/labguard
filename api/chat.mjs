@@ -13,7 +13,7 @@ export default async function handler(req, res) {
     if (Number(req.headers['content-length']) > 1500000) throw new AppError(413, 'Sélection documentaire trop volumineuse.');
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
     const input = validateRequest(body);
-    const answer = await generateAnswer(input, { apiKey: process.env.OPENAI_API_KEY, model: process.env.OPENAI_MODEL || 'gpt-4.1-mini' });
+    const answer = await generateAnswer(input, { apiKey: process.env.OPENAI_API_KEY, model: process.env.OPENAI_MODEL || 'gpt-5-nano' });
     return json(res, 200, answer);
   } catch (error) {
     const status = error instanceof AppError ? error.status : error instanceof SyntaxError ? 400 : 503;

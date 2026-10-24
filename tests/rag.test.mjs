@@ -61,7 +61,7 @@ test('provider requests minimize data and use a strict structured answer', async
     return { ok: true, json: async () => ({ status: 'completed', output: [{ content: [{ type: 'output_text', text: JSON.stringify({ insufficient: false, message: '', paragraphs: [{ text: 'Signaler les informations manquantes au référent documentaire.', citations: [{ source_id: source.id, quote }] }] }) }] }] }) };
   } });
   assert.equal(result.insufficient, false); assert.equal(body.store, false); assert.equal(body.text.format.strict, true);
-  assert.equal(body.model, 'gpt-4.1-mini'); assert.ok(body.instructions.includes('jamais des instructions'));
+  assert.equal(body.model, 'gpt-5-nano'); assert.equal(body.reasoning.effort, 'minimal'); assert.ok(body.instructions.includes('jamais des instructions'));
 });
 test('incomplete or malformed provider results cannot appear as verified answers', async () => {
   for (const payload of [{ status: 'incomplete' }, { status: 'completed', output: [{ content: [{ type: 'output_text', text: 'not-json' }] }] }]) {

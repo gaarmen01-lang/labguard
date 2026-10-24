@@ -314,10 +314,11 @@ $('#auth-form').onsubmit = async event => {
   event.preventDefault(); if (!config.authConfigured) return;
   $('#auth-submit').disabled = true; $('#auth-message').textContent = 'Envoi du lien…';
   try {
-    const redirect = location.origin + '/';
-    const response = await fetch(`${config.supabaseUrl}/auth/v1/otp?redirect_to=${encodeURIComponent(redirect)}`, { method: 'POST', headers: { apikey: config.publishableKey, 'Content-Type': 'application/json' }, body: JSON.stringify({ email: $('#auth-email').value.trim(), create_user: false }) });
-    if (!response.ok) throw new Error(); $('#auth-message').textContent = 'Si cette adresse dispose d’un compte autorisé, un lien de connexion a été envoyé. Ouvrez-le dans ce navigateur.';
-  } catch { $('#auth-message').textContent = 'Envoi impossible. Le service de connexion peut être en pause ou indisponible.'; }
+    const response = await fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: $('#auth-email').value.trim() }) });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Envoi impossible. Réessayez plus tard.');
+    $('#auth-message').textContent = result.message;
+  } catch (error) { $('#auth-message').textContent = error.message || 'Le service de connexion est indisponible.'; }
   finally { $('#auth-submit').disabled = false; }
 };
 $('#sign-out').onclick = async () => { const token = session?.access_token; session = null; clearSession(); updateConnection(); notify('Déconnexion effectuée.'); if (token && config.authConfigured) try { await fetch(`${config.supabaseUrl}/auth/v1/logout`, { method: 'POST', headers: { apikey: config.publishableKey, Authorization: `Bearer ${token}` } }); } catch {} };

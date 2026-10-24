@@ -28,13 +28,13 @@ export async function authenticate(req, config, fetcher = fetch) {
 }
 
 const limits = new Map();
-export function rateLimit(id, now = Date.now()) {
+export function rateLimit(id, now = Date.now(), maximum = 8) {
   // Per warm instance; authentication is the primary access boundary.
   const current = limits.get(id);
   if (!current || now - current.started >= 60000) {
     if (limits.size > 1000) for (const [key, value] of limits) if (now - value.started >= 60000) limits.delete(key);
     limits.set(id, { started: now, count: 1 }); return;
   }
-  if (current.count >= 8) throw new AppError(429, 'Trop de questions rapprochées. Attendez une minute.');
+  if (current.count >= maximum) throw new AppError(429, 'Trop de demandes rapprochées. Attendez une minute.');
   current.count++;
 }

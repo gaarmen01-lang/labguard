@@ -36,12 +36,12 @@ Configurer **uniquement côté serveur** :
 | Variable | Rôle |
 | --- | --- |
 | `OPENAI_API_KEY` | Clé du projet OpenAI autorisé |
-| `OPENAI_MODEL` | Modèle, `gpt-4.1-mini` par défaut |
+| `OPENAI_MODEL` | Modèle, `gpt-5-nano` par défaut |
 | `SUPABASE_URL` | URL HTTPS du projet Supabase |
 | `SUPABASE_PUBLISHABLE_KEY` | Clé publiable du projet ; ancienne clé anon également reconnue via `SUPABASE_ANON_KEY` |
 | `LABGUARD_ALLOWED_EMAILS` | Liste d’adresses du pilote, séparées par des virgules |
 
-Dans Supabase, réactiver le projet si nécessaire, créer ou inviter les comptes du pilote et autoriser l’URL exacte du site dans la configuration des redirections Auth. Le formulaire utilise un lien de connexion par e-mail avec `create_user: false` : il ne crée pas librement de comptes. Le serveur vérifie l’utilisateur, la confirmation de son adresse et son appartenance à la liste avant chaque question IA.
+Dans Supabase, réactiver le projet si nécessaire et autoriser l’URL exacte du site dans la configuration des redirections Auth. `/api/login` vérifie la liste d’adresses côté serveur avant de demander le lien de connexion. Pour une adresse autorisée, le compte est créé à la première connexion si nécessaire ; une adresse non autorisée ne provoque ni création de compte ni envoi par cette route. Le serveur vérifie l’utilisateur, la confirmation de son adresse et son appartenance à la liste avant chaque question IA. `LABGUARD_APP_URL` permet de changer l’adresse de retour, fixée par défaut à `https://armeng-labguard.vercel.app/`.
 
 Redéployer après modification des variables. `/api/config` annonce l’état et expose uniquement l’URL et la clé **publiable** nécessaires à la connexion. Il n’expose ni clé OpenAI, ni secret Supabase, ni liste d’adresses autorisées.
 
@@ -64,6 +64,7 @@ Ne pas saisir de données réelles de patients. Les exemples et les vérificatio
 - Les PDF scannés ne sont pas reconnus automatiquement. Les tableaux et unités doivent être vérifiés après extraction. DOCX et TXT ne reçoivent pas de faux numéros de page.
 - La validation locale d’un document n’est pas un workflow institutionnel de validation avec rôles et audit. L’authentification protège l’accès au service IA ; chaque utilisateur fournit son propre corpus dans la requête.
 - La présence d’une citation textuelle est contrôlée ; elle ne garantit pas à elle seule que toutes les interprétations de l’IA sont justes. Le professionnel doit vérifier la réponse dans son contexte.
+- Le modèle par défaut est `gpt-5-nano`, avec effort de raisonnement minimal et sans bascule automatique vers un modèle plus cher. Le nom reste configurable via `OPENAI_MODEL`.
 - La limite de huit questions par minute est appliquée par utilisateur et instance serveur. Ce n’est ni une limite globale durable ni un plafond de dépense. Un pilote élargi nécessite un quota partagé et un budget fournisseur.
 - Les fonctions de non-conformités, l’administration multi-tenant et la certification/conformité clinique ne font pas partie de cette livraison.
 
