@@ -12,7 +12,12 @@
 import { z } from 'zod';
 
 import type { LlmToolDefinition } from './llm';
-import type { AnalysisSearchResult, ChunkSearchResult, PageReadResult } from './domain';
+import {
+  chunkSearchResultSchema,
+  type AnalysisSearchResult,
+  type ChunkSearchResult,
+  type PageReadResult,
+} from './domain';
 
 export const AGENT_MAX_TURNS = 4;
 
@@ -54,11 +59,35 @@ export type ToolResults = {
   read_page: PageReadResult[];
 };
 
+/**
+ * Chunk relu par identifiant : texte intégral et métadonnées issues de la base
+ * (documents actifs uniquement, RLS appliquée).
+ */
+export const chunkRecordSchema = chunkSearchResultSchema.pick({
+  chunk_id: true,
+  document_id: true,
+  document_code: true,
+  document_title: true,
+  document_version: true,
+  page_number: true,
+  content: true,
+});
+export type ChunkRecord = z.infer<typeof chunkRecordSchema>;
+
 /** Implémentation des outils (tâche 4). */
 export interface AgentToolExecutor {
   searchAnalyses(args: SearchAnalysesArgs): Promise<AnalysisSearchResult[]>;
   searchDocuments(args: SearchDocumentsArgs): Promise<ChunkSearchResult[]>;
   readPage(args: ReadPageArgs): Promise<PageReadResult[]>;
+  /**
+   * Optionnel (non exposé au LLM). Relit des chunks par identifiant, pour
+   * vérifier les citations portant sur un chunk connu seulement par un extrait
+   * de fiche (`field_sources`) : texte intégral et page exacte. Ne renvoie que
+   * les chunks de documents actifs ; les identifiants inconnus sont ignorés.
+   * Sans cette méthode, une telle citation n'est acceptée que si elle figure
+   * dans l'extrait de la fiche et que sa page est connue.
+   */
+  getChunks?(chunkIds: string[]): Promise<ChunkRecord[]>;
 }
 
 /** Définitions transmises au LLM (descriptions destinées au modèle). */

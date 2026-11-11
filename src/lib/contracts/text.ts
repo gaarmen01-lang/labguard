@@ -38,11 +38,27 @@ export function normalizeTokens(input: string): string {
 }
 
 /**
- * Vrai si `quote` apparaît textuellement dans `source` après normalisation.
+ * Recolle les mots coupés en fin de ligne par une césure (« prélève-\nment »
+ * -> « prélèvement ») et retire les traits d'union conditionnels (U+00AD).
+ */
+export function joinHyphenation(input: string): string {
+  return input.replace(/\u00AD/g, '').replace(/(\p{L})-[ \t]*\r?\n[ \t]*(\p{Ll})/gu, '$1$2');
+}
+
+/**
+ * Vrai si `quote` apparaît textuellement dans `source` après normalisation
+ * (casse, accents, ponctuation, espaces), sur des mots entiers. Les césures de
+ * fin de ligne sont tolérées des deux côtés (texte recollé ou non).
  * Une citation vide (ou réduite à de la ponctuation) n'est jamais valide.
  */
 export function quoteAppearsIn(quote: string, source: string): boolean {
-  const needle = normalizeTokens(quote);
-  if (needle.length === 0) return false;
-  return ` ${normalizeTokens(source)} `.includes(` ${needle} `);
+  const needles = new Set([normalizeTokens(quote), normalizeTokens(joinHyphenation(quote))]);
+  const haystacks = new Set([normalizeTokens(source), normalizeTokens(joinHyphenation(source))]);
+  for (const needle of needles) {
+    if (needle.length === 0) return false;
+    for (const haystack of haystacks) {
+      if (` ${haystack} `.includes(` ${needle} `)) return true;
+    }
+  }
+  return false;
 }
