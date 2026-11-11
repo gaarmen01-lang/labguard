@@ -1,0 +1,103 @@
+/* Styles minimaux du socle ; la vraie UI arrive en tâche 5. */
+:root {
+  color-scheme: light dark;
+  --bg: #f7f8fa;
+  --surface: #ffffff;
+  --text: #17202a;
+  --muted: #5d6b7a;
+  --border: #d9dee5;
+  --accent: #1f5fae;
+  --accent-text: #ffffff;
+  --danger: #a4262c;
+  --radius: 10px;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #12161c;
+    --surface: #1b2129;
+    --text: #e6eaef;
+    --muted: #9aa7b5;
+    --border: #2d3640;
+    --accent: #6ea8ff;
+    --accent-text: #0d1117;
+    --danger: #ff8a8f;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+}
+
+a { color: var(--accent); }
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.app-header nav { display: flex; gap: 1rem; align-items: center; }
+.brand { font-weight: 700; text-decoration: none; color: var(--text); }
+.muted { color: var(--muted); font-size: 0.9rem; }
+
+.main { max-width: 52rem; margin: 0 auto; padding: 2rem 1.25rem; }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+}
+
+.auth-wrapper { min-height: 100vh; display: grid; place-items: center; padding: 1.25rem; }
+.auth-card { width: 100%; max-width: 26rem; }
+
+label { display: block; font-weight: 600; margin-bottom: 0.35rem; }
+
+input[type='email'] {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+}
+
+button, .button {
+  display: inline-block;
+  padding: 0.55rem 1rem;
+  border: 0;
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--accent-text);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button.link-button {
+  background: none;
+  color: var(--accent);
+  padding: 0;
+  font-weight: 400;
+  text-decoration: underline;
+}
+
+button:disabled { opacity: 0.6; cursor: progress; }
+.stack > * + * { margin-top: 1rem; }
+.notice { padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid var(--border); }
+.notice.error { border-color: var(--danger); color: var(--danger); }
+
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }

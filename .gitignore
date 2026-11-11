@@ -1,7 +1,26 @@
-migration/source-history.bundle
+# Dépendances
+node_modules/
+
+# Next.js / build
+.next/
+out/
+build/
+next-env.d.ts
+*.tsbuildinfo
+
+# Tests
+coverage/
+
+# Environnement (secrets) : seul .env.example est versionné
 .env
 .env.*
 !.env.example
-node_modules/
+
+# Vercel / Supabase local
 .vercel/
-dist/vendor/pdf.worker.mjs
+supabase/.branches/
+supabase/.temp/
+
+# Divers
+.DS_Store
+*.log
