@@ -1,0 +1,9 @@
+﻿# DOCUMENT FICTIF DE TEST — contenu inventé pour LabGuard, ne pas utiliser pour une pratique réelle. Aucune donnée patient.
+Code;Analyse;Tube;Volume;Transport;Délai de rendu;Remarques
+VITD;Vitamine D (25-OH);Tube sec avec gel (bouchon jaune);2 mL;Température ambiante;5 jours;
+ACTH;ACTH;EDTA K2 (bouchon mauve);2 mL;"Dans la glace ; centrifuger dans les 30 minutes";7 jours;Prélèvement entre 7 h et 10 h
+HOMOC;Homocystéine;EDTA K2 (bouchon mauve);2 mL;Dans la glace;10 jours;Centrifuger dans l’heure
+EPP;Électrophorèse des protéines sériques;Tube sec avec gel (bouchon jaune);2 mL;Température ambiante;5 jours;
+TPO;Anticorps anti-TPO;Tube sec avec gel (bouchon jaune);2 mL;Température ambiante;7 jours;
+PTH;Parathormone (PTH);EDTA K2 (bouchon mauve);2 mL;"Réfrigéré (2-8 °C) ; centrifuger dans les 2 h";5 jours;"Tube sec refusé.
+Préciser l’heure du prélèvement"

@@ -16,6 +16,7 @@ import { z } from 'zod';
 import {
   allowedEmailSchema,
   analysisSheetSchema,
+  chunkSchema,
   conversationSchema,
   docTypeSchema,
   emailSchema,
@@ -174,6 +175,38 @@ export const ingestResponseSchema = z.object({
   done: z.boolean(),
 });
 export type IngestResponse = z.infer<typeof ingestResponseSchema>;
+
+/** Corps (optionnel) de POST /api/admin/documents/[id]/ingest. */
+export const ingestRequestSchema = z.object({
+  /** Vrai : repart de zéro (nouveau job) au lieu de reprendre le dernier job interrompu. */
+  restart: z.boolean().default(false),
+});
+export type IngestRequest = z.infer<typeof ingestRequestSchema>;
+
+/**
+ * GET /api/admin/documents/[id]/chunks?page=&offset=&limit= : aperçu des
+ * chunks pour contrôle humain avant activation.
+ */
+export const documentChunksQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).optional(),
+  offset: z.coerce.number().int().min(0).default(0),
+  limit: z.coerce.number().int().min(1).max(200).default(50),
+});
+export type DocumentChunksQuery = z.infer<typeof documentChunksQuerySchema>;
+
+export const documentChunksResponseSchema = z.object({
+  chunks: z.array(chunkSchema),
+  total: z.number().int(),
+});
+export type DocumentChunksResponse = z.infer<typeof documentChunksResponseSchema>;
+
+/** GET /api/admin/documents/[id]/file : URL signée courte durée vers l'original. */
+export const documentFileUrlResponseSchema = z.object({
+  url: z.url(),
+  expires_in: z.number().int(),
+  filename: z.string().nullable(),
+});
+export type DocumentFileUrlResponse = z.infer<typeof documentFileUrlResponseSchema>;
 
 /** POST /api/admin/documents/[id]/activate | /archive ; DELETE /api/admin/documents/[id] */
 export const documentStatusResponseSchema = z.object({

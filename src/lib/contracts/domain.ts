@@ -243,6 +243,35 @@ export const ingestionJobSchema = z.object({
 });
 export type IngestionJob = z.infer<typeof ingestionJobSchema>;
 
+/**
+ * Partie publique de `ingestion_jobs.cursor` (tâche 2) : bilan lisible par
+ * l'interface d'administration. Les autres clés du curseur sont internes au
+ * pipeline et peuvent évoluer.
+ */
+export const ingestionReportSchema = z
+  .object({
+    /** Avertissements non bloquants, en français. */
+    warnings: z.array(z.string()).default([]),
+    /** Extraction assistée par LLM : utilisée, indisponible (non configurée), inutile, ou pas encore atteinte. */
+    llm: z.enum(['pending', 'used', 'unavailable', 'not_needed']).default('pending'),
+    stats: z
+      .object({
+        pages: z.number().int(),
+        chunks: z.number().int(),
+        table_rows: z.number().int(),
+        analyses_deterministic: z.number().int(),
+        analyses_llm: z.number().int(),
+        rejected_fields: z.number().int(),
+        rejected_analyses: z.number().int(),
+        llm_calls: z.number().int(),
+        llm_invalid_responses: z.number().int(),
+      })
+      .partial()
+      .default({}),
+  })
+  .loose();
+export type IngestionReport = z.infer<typeof ingestionReportSchema>;
+
 // --- Conversations -----------------------------------------------------------
 
 export const conversationSchema = z.object({
